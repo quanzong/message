@@ -11,7 +11,7 @@ services:
       - metadata_data:/var/www/html/.files
     environment:
       # 必填：设置登录密码
-      - AUTH_PASS=${AUTH_PASS:-}
+      - AUTH_PASS="dhq0913"
       # 可选：限制允许的文件扩展名，用逗号分隔
       - ALLOWED_EXTENSIONS=${ALLOWED_EXTENSIONS:-}
     restart: unless-stopped

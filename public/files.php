@@ -76,8 +76,8 @@ function check_auth(): bool {
         return true;
     }
     
-    // 首次认证
-    if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
+    // 首次认证 - 只验证密码，忽略用户名
+    if (!isset($_SERVER['PHP_AUTH_PW'])) {
         return false;
     }
     
