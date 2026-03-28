@@ -20,7 +20,8 @@ define('DATA_DIR', __DIR__ . DIRECTORY_SEPARATOR . '.' . SCRIPT_NAME);
 define('FILES_DIR', __DIR__ . DIRECTORY_SEPARATOR . SCRIPT_NAME);
 define('TASKS_DIR', DATA_DIR . DIRECTORY_SEPARATOR . 'tasks');
 define('ALLOWED_EXTENSIONS', null); // null = 允许所有，或 ['jpg', 'png', 'mp4', ...]
-define('DELETE_KEY', ''); // 留空则允许任何人删除，设置后需要提供key才能删除
+
+define('AUTH_PASS', getenv('AUTH_PASS') ?: ''); // 登录密码，从环境变量AUTH_PASS读取，留空则不启用认证
 
 // 初始化目录
 function init_directories() {
@@ -63,6 +64,43 @@ function csrf_token(): string {
 function csrf_check(): bool {
     $token = $_SERVER['HTTP_X_CSRF'] ?? $_POST['_csrf'] ?? '';
     return hash_equals($_SESSION['csrf'] ?? '', $token);
+}
+
+function check_auth(): bool {
+    if (AUTH_PASS === '') {
+        return true;
+    }
+    
+    // 检查session中是否已登录
+    if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
+        return true;
+    }
+    
+    // 首次认证
+    if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
+        return false;
+    }
+    
+    if ($_SERVER['PHP_AUTH_PW'] === AUTH_PASS) {
+        $_SESSION['authenticated'] = true;
+        return true;
+    }
+    
+    return false;
+}
+
+function require_auth(): void {
+    if (!check_auth()) {
+        header('WWW-Authenticate: Basic realm="File Manager"');
+        header('Content-Type: text/plain; charset=utf-8');
+        http_response_code(401);
+        echo 'Unauthorized';
+        exit;
+    }
+}
+
+function logout(): void {
+    $_SESSION['authenticated'] = false;
 }
 
 // 安全处理文件名
@@ -199,6 +237,7 @@ try {
             exit;
 
         case 'upload':
+            require_auth();
             if ($method !== 'POST') {
                 throw new Exception('Method not allowed', 405);
             }
@@ -246,16 +285,13 @@ try {
             exit;
 
         case 'delete':
+            require_auth();
             if ($method !== 'POST') {
                 throw new Exception('Method not allowed', 405);
             }
             if (!csrf_check()) {
                 throw new Exception('CSRF token mismatch', 403);
             }
-            if (DELETE_KEY !== '' && ($_POST['key'] ?? '') !== DELETE_KEY) {
-                throw new Exception('Invalid delete key', 403);
-            }
-
             $file = safe_filename($_POST['file'] ?? '');
             $path = FILES_DIR . DIRECTORY_SEPARATOR . $file;
             if (!is_file($path)) {
@@ -268,6 +304,7 @@ try {
             exit;
 
         case 'task':
+            require_auth();
             if ($method !== 'POST') {
                 throw new Exception('Method not allowed', 405);
             }
@@ -318,16 +355,13 @@ try {
             exit;
 
         case 'batch-delete':
+            require_auth();
             if ($method !== 'POST') {
                 throw new Exception('Method not allowed', 405);
             }
             if (!csrf_check()) {
                 throw new Exception('CSRF token mismatch', 403);
             }
-            if (DELETE_KEY !== '' && ($_POST['key'] ?? '') !== DELETE_KEY) {
-                throw new Exception('Invalid delete key', 403);
-            }
-
             $files = json_decode($_POST['files'] ?? '[]', true);
             if (!is_array($files)) {
                 throw new Exception('Invalid files list', 400);
@@ -349,6 +383,7 @@ try {
             exit;
 
         case 'rename':
+            require_auth();
             if ($method !== 'POST') {
                 throw new Exception('Method not allowed', 405);
             }
@@ -389,6 +424,7 @@ try {
 }
 
 // 渲染页面
+require_auth();
 $csrf = csrf_token();
 $self = self_url();
 $filesUrl = files_url();

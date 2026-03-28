@@ -41,12 +41,24 @@ sudo systemctl enable --now files.php.download
 
 ## 配置
 
+支持两种配置方式：
+
+### 1. 环境变量（推荐）
+
+```bash
+# 设置环境变量
+export AUTH_PASS=your_password      # 登录密码
+export ALLOWED_EXTENSIONS=jpg,png   # 允许的文件类型
+```
+
+### 2. 直接修改代码
+
 编辑 `files.php` 顶部的常量：
 
 | 常量 | 说明 |
 |------|------|
 | `ALLOWED_EXTENSIONS` | 允许的文件类型，null为不限制 |
-| `DELETE_KEY` | 删除密钥，留空则任何人可删除 |
+| `AUTH_PASS` | 登录密码，留空则不启用认证 |
 
 ## 重命名
 
@@ -60,7 +72,7 @@ sudo systemctl enable --now files.php.download
 
 ## 安全建议
 
-- 生产环境设置 `DELETE_KEY`
+- 生产环境建议设置 `AUTH_PASS` 启用密码认证
 - 使用HTTPS
 - 配置 `ALLOWED_EXTENSIONS` 限制上传类型
 - Web服务器配置禁止直接访问 `.` 开头的目录

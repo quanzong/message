@@ -12,7 +12,7 @@ services:
       - ./data/files:/var/www/html/files
       - ./data/metadata:/var/www/html/.files
     environment:
-      DELETE_KEY: dev_key_123
+      AUTH_PASS: dev_password
       ALLOWED_EXTENSIONS: jpg,png,gif,pdf,txt,doc,docx
     restart: unless-stopped
     command: apache2-foreground
@@ -26,7 +26,7 @@ services:
       - ./data/files:/var/www/html/files
       - ./data/metadata:/var/www/html/.files
     environment:
-      DELETE_KEY: dev_key_123
+      AUTH_PASS: dev_password
       ALLOWED_EXTENSIONS: jpg,png,gif,pdf,txt,doc,docx
     restart: unless-stopped
     profiles:

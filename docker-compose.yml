@@ -10,8 +10,8 @@ services:
       - files_data:/var/www/html/files
       - metadata_data:/var/www/html/.files
     environment:
-      # 可选：设置删除密钥
-      - DELETE_KEY=${DELETE_KEY:-}
+      # 必填：设置登录密码
+      - AUTH_PASS=${AUTH_PASS:-}
       # 可选：限制允许的文件扩展名，用逗号分隔
       - ALLOWED_EXTENSIONS=${ALLOWED_EXTENSIONS:-}
     restart: unless-stopped
